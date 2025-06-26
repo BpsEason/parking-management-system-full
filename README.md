@@ -1,14 +1,14 @@
 # 停車管理系統 (Parking Management System)
 
-這是一個簡單的停車管理系統，功能包含車輛進出記錄、費用計算和基本用戶管理。專案使用 Laravel 開發，結構模組化，方便維護和擴展。本倉庫僅包含核心代碼，Laravel 基本框架需自行安裝。以下是核心介紹，細節請直接看程式碼或部署試試。
+這是一個簡單的停車管理系統，功能包含車輛進出記錄、費用計算和基本用戶管理。專案用 Laravel 寫的，結構模組化，方便維護和擴展。這個倉庫只放核心代碼，Laravel 基本框架得自己裝。以下是重點介紹，想知道細節就直接看程式碼或試著跑跑看。
 
 ## 系統架構
 系統分成三個主要模組：
-- **Parking**：處理車輛進出、車位分配，確保高並發安全。
-- **Billing**：計算停車費用，支援靈活的費率規則。
-- **User**：管理用戶和角色（如管理員、安全人員）。
+- **Parking**：處理車輛進出、車位分配，確保高流量下不出錯。
+- **Billing**：計算停車費用，支援不同費率規則。
+- **User**：管理用戶和角色（像管理員或保全）。
 
-架構圖（使用 Mermaid 繪製，GitHub 可直接渲染）：
+架構圖（用 Mermaid 畫，GitHub 上能直接顯示）：
 ```mermaid
 graph TD
     A[前端/外部系統] -->|HTTP 請求| B[API 控制器<br>ParkingController]
@@ -25,33 +25,33 @@ graph TD
 - PHP >= 8.2
 - Composer
 - MySQL 或其他 Laravel 支援的資料庫
-- Redis（可選，作為快取或佇列驅動）
+- Redis（可選，用來做快取或佇列）
 
 ## 安裝步驟
 1. 複製專案：`git clone https://github.com/BpsEason/parking-management-system-full.git`
-2. 初始化 Laravel 專案：在本地創建一個新的 Laravel 專案（`composer create-project laravel/laravel parking-management-system`）。
-3. 複製核心代碼：將倉庫中的 `app/Modules` 和 `routes/api.php` 複製到你的 Laravel 專案對應目錄。
-4. 安裝依賴：`composer install`
-5. 複製環境檔案：`cp .env.example .env`
-6. 設定 `.env`（資料庫、Redis 等）
-7. 生成應用金鑰：`php artisan key:generate`
-8. 執行遷移：`php artisan migrate`
-9. 啟動伺服器：`php artisan serve`
-10. （可選）啟動佇列工作進程：`php artisan queue:work redis --tries=3 --timeout=90`
+2. 初始化 Laravel 專案：用 `composer create-project laravel/laravel parking-management-system` 建一個新專案。
+3. 複製核心代碼：把倉庫裡的 `app/Modules` 和 `routes/api.php` 丟到你的 Laravel 專案對應目錄。
+4. 安裝依賴：跑 `composer install`
+5. 複製環境檔案：跑 `cp .env.example .env`
+6. 設定 `.env`（資料庫、Redis 之類的）
+7. 生成應用金鑰：跑 `php artisan key:generate`
+8. 執行遷移：跑 `php artisan migrate`
+9. 啟動伺服器：跑 `php artisan serve`
+10. （可選）啟動佇列工作：跑 `php artisan queue:work redis --tries=3 --timeout=90`
 
 ## 專案亮點
-- **模組化設計**：將停車、計費、用戶管理分模組，程式碼清晰，易於維護和擴展。
-- **高並發安全**：車位分配使用資料庫事務和悲觀鎖，確保高流量下不重複分配車位。
-- **靈活費率系統**：採用策略模式，支援時租、日租、月租等多種計費方式，未來可輕鬆新增規則。
-- **事件驅動架構**：車輛進出觸發事件，異步更新看板和計算費用，提升效能和即時性。
-- **異常處理完善**：自定義異常（如無可用車位、記錄未找到），搭配統一的 API 回應格式，方便前端整合。
-- **測試基礎**：提供單元測試和功能測試骨架，方便開發者進行 TDD 或驗證核心邏輯。
+- **模組化設計**：把停車、計費、用戶管理分成獨立模組，程式碼清楚，維護方便。
+- **高並發安全**：車位分配用資料庫事務和悲觀鎖，確保不會把同一個車位分給多輛車。
+- **靈活費率系統**：用策略模式，支援時租、日租、月租，未來加新規則很簡單。
+- **事件驅動架構**：車輛進出觸發事件，異步處理看板更新或費用計算，效率高且即時。
+- **異常處理完善**：自訂異常（像無車位、找不到記錄），搭配統一 API 回應，方便前端整合。
+- **測試基礎**：有單元測試和功能測試骨架，方便用 TDD 或驗證核心邏輯。
 
 ## 核心功能與代碼
-以下是系統的關鍵功能和對應的核心代碼，已添加詳細註解，完整實現請參考倉庫檔案。
+以下是系統的核心功能和代碼，已經加了詳細註解，完整內容請看倉庫檔案。
 
 ### 1. 車輛進出記錄
-記錄車輛進出，並確保車位分配不衝突，使用悲觀鎖避免並發問題。
+負責記錄車輛進出，確保車位分配不出錯，用悲觀鎖處理高並發問題。
 
 **ParkingService.php**
 ```php
@@ -76,7 +76,7 @@ class ParkingService
      */
     public function recordVehicleEntry(string $licensePlate, int $parkingLotId): EntryExitRecord
     {
-        // 使用資料庫事務確保操作原子性
+        // 用資料庫事務確保操作原子性
         return DB::transaction(function () use ($licensePlate, $parkingLotId) {
             // 檢查或創建車輛記錄，確保車輛存在
             $vehicle = Vehicle::firstOrCreate([
@@ -84,13 +84,13 @@ class ParkingService
                 'parking_lot_id' => $parkingLotId
             ]);
 
-            // 查詢可用車位，並使用悲觀鎖防止並發衝突
+            // 查可用車位，用悲觀鎖避免並發衝突
             $availableSpace = ParkingSpace::where('parking_lot_id', $parkingLotId)
                                           ->where('status', 'available')
                                           ->lockForUpdate()
                                           ->first();
             
-            // 若無可用車位，拋出異常
+            // 沒車位就丟異常
             if (!$availableSpace) {
                 throw new NoAvailableSpaceException("No available spaces found in parking lot ID: {$parkingLotId}");
             }
@@ -106,7 +106,7 @@ class ParkingService
                 'entry_time' => now(),
             ]);
 
-            // 觸發車輛進場事件，用於異步處理（如更新看板）
+            // 觸發進場事件，給異步處理（像更新看板）
             event(new \App\Modules\Parking\Events\VehicleEntered($record));
 
             return $record;
@@ -116,7 +116,7 @@ class ParkingService
 ```
 
 ### 2. 費用計算
-根據費率規則計算停車費用，支援策略模式，方便未來擴展不同計費方式。
+根據費率規則算停車費，支援策略模式，方便加新計費方式。
 
 **FeeCalculationService.php**
 ```php
@@ -137,30 +137,30 @@ class FeeCalculationService
      */
     public function calculateFee(EntryExitRecord $record): float
     {
-        // 查詢停車場的活躍費率方案
+        // 查停車場的活躍費率方案
         $ratePlan = RatePlan::where('parking_lot_id', $record->parking_lot_id)
                             ->where('is_active', true)
                             ->first();
         
-        // 若無費率方案，拋出異常
+        // 沒費率方案就丟異常
         if (!$ratePlan) {
             throw new \Exception("No active rate plan found for parking lot ID: {$record->parking_lot_id}");
         }
 
-        // 計算停車時長（小時）
+        // 算停車時長（小時）
         $durationInHours = $record->exit_time->diffInHours($record->entry_time);
 
-        // 從費率方案的 JSON 規則中獲取每小時費率，預設 40
+        // 從費率方案的 JSON 拿每小時費率，預設 40
         $hourlyRate = $ratePlan->rules['hourly_rate'] ?? 40;
 
-        // 計算總費用
+        // 算總費用
         return $durationInHours * $hourlyRate;
     }
 }
 ```
 
 ### 3. API 端點
-提供車輛進出和費用查詢的 RESTful API，簡潔且易於整合。
+提供車輛進出和費用查詢的 RESTful API，簡單好整合。
 
 **api.php**
 ```php
@@ -180,7 +180,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    // 需要認證的路由，使用 Sanctum 中間件
+    // 需要認證的路由，用 Sanctum 中間件
     Route::middleware('auth:sanctum')->group(function () {
         // 車輛進場 API
         Route::post('parking/entry', [ParkingController::class, 'entry']);
@@ -196,49 +196,76 @@ Route::prefix('v1')->group(function () {
 - `parking_spaces`：車位資訊（編號、類型、狀態）。
 - `vehicles`：車輛資訊（車牌、所屬停車場）。
 - `entry_exit_records`：進出記錄（車輛、車位、時間、費用）。
-- `rate_plans`：費率方案（規則以 JSON 儲存）。
+- `rate_plans`：費率方案（規則用 JSON 存）。
 - `users` 和 `roles`：用戶和角色管理。
 
-**注意**：資料庫遷移檔案需自行根據 Laravel 標準流程創建，參考模型結構即可。
+**注意**：資料庫遷移檔案得自己照 Laravel 標準流程寫，參考模型結構就好。
 
 ## 測試
-專案包含單元測試和功能測試骨架，位於 `tests/Unit` 和 `tests/Feature`。執行測試：
+專案有單元測試和功能測試骨架，放在 `tests/Unit` 和 `tests/Feature`。跑測試：
 ```bash
 php artisan test
 ```
 
-**注意**：測試檔案需自行根據 Laravel 測試框架補充。
+**注意**：測試檔案得自己依 Laravel 測試框架補齊。
 
-## 常見問題
-1. **Q：如何整合核心代碼到 Laravel 專案？**
-   - **A**：先創建一個新的 Laravel 專案，然後將 `app/Modules` 和 `routes/api.php` 複製到對應目錄。確保 `composer.json` 已包含必要依賴，並執行 `composer install`。
+## 常見問題與解答 (FAQ)
 
-2. **Q：執行 `composer install` 時提示 PHP 版本不符？**
-   - **A**：確認 PHP 版本 >= 8.2，執行 `php -v` 檢查。若版本過低，可用 Docker 或升級 PHP。
+### 1. 架構與設計模式
+**為什麼用模組化架構，而不是傳統 MVC？有啥優缺點？**  
+這專案把停車、計費、用戶管理分成獨立模組，程式碼按業務分清楚，符合「高內聚、低耦合」。好處是職責分明，團隊分工方便，未來加功能也簡單。缺點是架構比傳統 MVC 複雜點，得多花心思設路由、服務提供者和命名空間。
 
-3. **Q：啟動時 Redis 連線失敗？**
-   - **A**：確認 Redis 服務是否運行，或在 `.env` 將 `CACHE_DRIVER` 和 `QUEUE_CONNECTION` 改為 `file` 或 `sync`，以跳過 Redis 依賴。
+**ParkingService 為啥用 DB::transaction 和 lockForUpdate()？不用的話會怎樣？**  
+DB::transaction 確保資料庫操作要嘛全成功，要嘛全失敗，像是車位狀態更新和進場記錄得一起完成。lockForUpdate() 是悲觀鎖，查車位時鎖住資料，避免多個請求搶同一個車位。如果沒這兩個，高流量時可能會把同一個車位分給多輛車，亂掉。
 
-4. **Q：車位分配失敗或重複分配？**
-   - **A**：系統使用悲觀鎖避免並發問題，確保資料庫支援鎖定機制（如 MySQL InnoDB）。若仍發生問題，檢查資料庫連線是否穩定。
+**計費模組用策略模式算費率，怎麼實現的？為啥不用 if/else？**  
+策略模式把時租、日租等計費邏輯封裝成獨立類別，透過 RateCalculationStrategyInterface 統一規範。FeeCalculationService 根據 rate_plan 動態選策略。比起 if/else，這樣未來加新費率只要寫新類別，不用改核心程式碼，符合開閉原則。
 
-5. **Q：API 回應 403 或 401 錯誤？**
-   - **A**：API 使用 Sanctum 認證，需先透過 `/api/user` 取得 token。請參考 Laravel Sanctum 文件設定認證流程。
+**為啥用事件驅動架構，車輛出場觸發 VehicleExited 事件，而不是直接在 recordVehicleExit 算費用？**  
+事件驅動讓費用計算、看板更新這些耗時操作可以異步跑，放進佇列，縮短 API 回應時間，使用者體驗更好。即使費用算錯，也不會卡住出場流程。想加日誌或通知，新增監聽器就行，擴展性高。
 
-6. **Q：費用計算結果不符合預期？**
-   - **A**：檢查 `rate_plans` 表的 `rules` 欄位是否正確配置 JSON 格式（如 `{"hourly_rate": 40}`）。可手動新增測試資料驗證。
+### 2. 程式碼細節與實務
+**ParkingService::recordVehicleEntry 用 Vehicle::firstOrCreate，會跑幾次資料庫查詢？車輛已存在時有啥效能問題？**  
+firstOrCreate 先跑一次 SELECT 查車輛，不存在就再跑一次 INSERT，最多兩次。如果車輛已存在，只跑一次 SELECT。效能上，若進場頻率高，建議快取常用車輛資料，或用原生 SQL 少跑點查詢。
+
+**API 路由用 Route::middleware('auth:sanctum')，Sanctum 怎麼運作？為啥適合這專案？**  
+Sanctum 是輕量級 API 認證，適合行動 App 或 SPA。使用者登入後，伺服器給個 token，後續請求帶著這 token 在 Header 驗證。比 OAuth2 簡單，設定省事，很適合這種輕量級 API。
+
+**為啥自訂 NoAvailableSpaceException 和 RecordNotFoundException，在 Handler.php 處理？有啥好處？**  
+自訂異常讓錯誤原因一目了然。統一在 Handler.php 處理，業務邏輯和錯誤處理分開，控制器不用寫一堆 try-catch，還能回統一的 API 錯誤格式，前端整合起來方便。
+
+**EntryExitRecord 的 exit_time 和 total_fee 為啥設可空？業務上代表啥？**  
+exit_time 和 total_fee 可空是因為車輛進場時還沒出場，這兩個欄位沒值，只有出場時才會填。這符合實際流程，也方便查「還沒出場的車」（whereNull('exit_time')）。
+
+### 3. 效能與部署
+**預設用 Redis 做快取和佇列，沒 Redis 會不會掛？有啥建議？**  
+沒 Redis 又沒改配置，佇列或快取可能會出錯。建議在 `.env` 把 `CACHE_DRIVER` 改成 `file`，`QUEUE_CONNECTION` 改成 `sync` 或 `database`，這樣就能不靠 Redis 跑起來。
+
+**如果車位數有幾萬個，ParkingSpace 查 where('status', 'available') 會不會慢？怎麼優化？**  
+查 status = 'available' 若沒索引，可能掃全表，很吃效能。建議在 `status` 欄位加索引（`CREATE INDEX idx_status ON parking_spaces(status)`）。另外，可以用 Redis 存可用車位數，進出場時更新，少查資料庫。
+
+**用了悲觀鎖，部署時怎麼確保資料庫交易隔離和鎖定沒問題？**  
+得用支援行級鎖的引擎，像 MySQL 的 InnoDB。預設隔離級別（REPEATABLE READ）通常夠用。部署時，檢查 `my.cnf` 確認 InnoDB 正常，別被怪配置搞亂。
+
+### 4. 測試與維護
+**ParkingServiceTest.php 用 Mockery 模擬依賴，為啥要這樣？**  
+單元測試要專注測單一模組。Mockery 模擬 ParkingRecordRepositoryInterface，隔離資料庫，測試跑得快，還能確保只測 ParkingService 的邏輯，不被外部影響。
+
+**README 提到未來改進「補充 Seeder」和「角色權限檢查」，具體怎麼做？**  
+- **Seeder**：寫 `ParkingLotSeeder`、`ParkingSpaceSeeder`、`RoleSeeder` 和 `UserSeeder`，在 `DatabaseSeeder` 串起來，跑 `php artisan migrate --seed` 就能快速填測試資料，方便開發。  
+- **角色權限檢查**：在 `VehicleEntryRequest` 的 `authorize()` 用 `Auth::user()->hasRole('security')` 檢查角色，再用 Laravel Policy（像 `ParkingPolicy`）定義細部權限，在 `ParkingController` 呼叫 `$this->authorize('create', EntryExitRecord::class)`，權限邏輯集中好管理。
 
 ## 注意事項
-- 本倉庫僅包含核心代碼，Laravel 基本框架（如 `config`、`public` 等）需自行安裝。
-- 預設使用 Redis 作為快取和佇列驅動，若無 Redis，可在 `.env` 改用 `file` 或 `sync` 驅動。
-- 費率規則目前以簡單每小時計費為例，實際應用可擴展為日費、階梯費率等。
-- API 預設使用 Sanctum 認證，建議根據需求配置權限檢查。
-- 尚未包含 Seeder，建議自行新增以生成測試資料。
+- 倉庫只給核心代碼，Laravel 基本框架（像 `config`、`public`）得自己裝。
+- 預設用 Redis 做快取和佇列，沒 Redis 就在 `.env` 改用 `file` 或 `sync`。
+- 費率目前是簡單時租，實際用可加日租或階梯費率。
+- API 用 Sanctum 認證，建議依需求設權限檢查。
+- 沒給 Seeder，建議自己加，方便生測試資料。
 
 ## 未來改進
-- 補充資料庫 Seeder，方便快速生成測試資料。
-- 加入 OpenAPI 文件，提升 API 易用性。
-- 實現角色權限檢查（如僅安全人員可記錄進出）。
-- 新增多語言支援，提升國際化能力。
+- 加資料庫 Seeder，快速生成測試資料。
+- 做 OpenAPI 文件，讓 API 更好用。
+- 加上角色權限檢查（像只有保全能記錄進出）。
+- 支援多語言，方便國際化。
 
-有問題請直接在 GitHub 開 issue 或聯繫開發者，謝謝！
+有問題直接在 GitHub 開 issue 或聯繫開發者，謝謝！
