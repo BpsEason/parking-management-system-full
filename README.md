@@ -11,10 +11,14 @@
 架構圖（使用 Mermaid 繪製，GitHub 可直接渲染）：
 ```mermaid
 graph TD
-    A[API 控制器<br>進出記錄、費用查詢] -->|請求| B[服務層<br>業務邏輯、事務處理]
-    B -->|操作| C[模型與資料庫<br>車輛、車位、費用]
-    C -->|觸發| D[事件與佇列<br>異步處理、通知]
-    D -->|回饋| A
+    A[前端/外部系統] -->|HTTP 請求| B[API 控制器<br>ParkingController]
+    B -->|調用| C[服務層<br>ParkingService<br>FeeCalculationService]
+    C -->|查詢/更新| D[資料庫<br>parking_lots<br>parking_spaces<br>vehicles<br>entry_exit_records<br>rate_plans]
+    C -->|觸發| E[事件與佇列<br>VehicleEntered 事件<br>Redis 佇列]
+    E -->|異步通知| F[看板更新/日誌記錄]
+    D -->|資料回饋| C
+    C -->|回應| B
+    B -->|API 回應| A
 ```
 
 ## 環境需求
